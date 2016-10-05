@@ -1,3 +1,4 @@
+
 import entities.*;
 import http.HTTPClient;
 import java.util.*;
@@ -9,10 +10,10 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         long start = System.nanoTime();
-        int max = 5;
-        List<AddresAndro> values = parseAdresses(max);
+        int max = 303;
+        List<User> values = parseUsers(max);
         long parsed = System.nanoTime();
-        xlsx.XlsxWriter.adressesWrite("addr_" + System.nanoTime() + "_.xlsx", values);
+        xlsx.XlsxWriter.usersWrite("user_" + System.nanoTime() + "_.xlsx", values);
         long fileCreated = System.nanoTime();
         System.out.println("processed " + max + " pages");
         System.out.println("in seconds");
@@ -156,6 +157,59 @@ public class Parser {
         return values;
     }
 
+    private static List<User> parseUsers(int max) throws Exception {
+        HTTPClient http = new HTTPClient();
+        List<User> values = new ArrayList<>();
+
+        long start = System.nanoTime();
+        for (int i = 1; i <= max; i++) {
+            String result = http.sendGet("http://eco.andromix.eu/users/edit/id/" + i);
+            if (!result.contains("Настройки на потребителя")) {
+                System.out.println("SKIPPED");
+                continue;
+            }
+            User u = new User();
+            u.Id = i;
+
+            String[] itemsRaw = result.split("form id=\"formcards")[1].split("</form>")[0].split("<div class=\"controls\">");
+            if (itemsRaw.length != 25) {
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!itemsRaw.length!=25 but" + itemsRaw.length);
+                continue;
+            }
+            storedRaw = itemsRaw;
+            rawPointer = 1;
+            u.Име = fromNextRaw();
+            u.Пълно_име = fromNextRaw();
+            u.Език = fromNextRaw();
+            u.Парола = fromNextRaw();
+            u.Потвърдете_паролата = fromNextRaw();
+            //u.Снимка =
+            fromNextRaw();
+            u.Група = fromNextRaw();
+            u.Статус = fromNextRaw();
+            u.Кола = fromNextRaw();
+            u.Пол = fromNextRaw();
+            u.Говорими_езици = fromNextRaw();
+            fromNextRaw(); // sooome shift
+            u.Обновява_адреси = fromNextRaw();
+            u.Активен_само_от_таблет_с_ID = fromNextRaw();
+            u.Индивидуални_изисквания = fromNextRaw();
+            u.Климатик = fromNextRaw();
+            u.Пушачи = fromNextRaw();
+            u.Може_да_мине_граница = fromNextRaw();
+            u.Приема_животни = fromNextRaw();
+            u.Wifi = fromNextRaw();
+            u.Услуги = fromNextRaw();
+            u.Drink_and_drive = fromNextRaw();
+            u.Фактура = fromNextRaw();
+            u.Допълнителна_информация = fromNextRaw();
+            u.Говорими_езици = parseJSArray(result);
+            values.add(u);
+            System.out.println(/*"remaning " +*/(max - i));
+        }
+        return values;
+    }
+
     private static String fromNextRaw() {
         return fromRaw(storedRaw[rawPointer++]);
     }
@@ -167,11 +221,11 @@ public class Parser {
             }
             return fromSelect(raw);
         }
-        if (raw.contains("<input")) {
-            return fromInput(raw);
-        }
         if (raw.contains("<textarea")) {
             return fromTextarea(raw);
+        }
+        if (raw.contains("<input")) {
+            return fromInput(raw);
         }
         return "??????????????????";
     }
@@ -192,6 +246,7 @@ public class Parser {
         }
         return "";
     }
+
     private static String fromMultiSelect(String raw) {
         String r = "";
         for (String c : raw.split("<option value")) {
@@ -211,4 +266,8 @@ public class Parser {
 //        }
 //        return sites;
 //    }
+
+    private static String parseJSArray(String result) {
+     return result.split("var jsArray = \\[")[1].split("\\]")[0];
+    }
 }

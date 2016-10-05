@@ -187,6 +187,75 @@ public class XlsxWriter {
         fileOut.close();
     }
 
+    public static void usersWrite(String excelFileName, Collection<User> entities) throws Exception {
+
+        String sheetName = "Sheet1";//name of sheet
+        XSSFWorkbook wb = new XSSFWorkbook();
+        XSSFCreationHelper helper = wb.getCreationHelper();
+        XSSFSheet sheet = wb.createSheet(sheetName);
+        int index = 0;
+        XSSFRow r1 = sheet.createRow(index);
+        r1.createCell(0).setCellValue("Id");
+        r1.createCell(1).setCellValue("Име");
+        r1.createCell(2).setCellValue("Пълно_име");
+        r1.createCell(3).setCellValue("Език");
+        r1.createCell(4).setCellValue("Парола");
+        r1.createCell(5).setCellValue("Потвърдете_паролата");
+        r1.createCell(6).setCellValue("Снимка");
+        r1.createCell(7).setCellValue("Група");
+        r1.createCell(8).setCellValue("Статус");
+        r1.createCell(9).setCellValue("Кола");
+        r1.createCell(10).setCellValue("Пол");
+        r1.createCell(11).setCellValue("Говорими_езици");
+        r1.createCell(12).setCellValue("Обновява_адреси");
+        r1.createCell(13).setCellValue("Активен_само_от_таблет_с_ID");
+        r1.createCell(14).setCellValue("Индивидуални_изисквания");
+        r1.createCell(15).setCellValue("Климатик");
+        r1.createCell(16).setCellValue("Пушачи");
+        r1.createCell(17).setCellValue("Може_да_мине_граница");
+        r1.createCell(18).setCellValue("Приема_животни");
+        r1.createCell(19).setCellValue("Wifi");
+        r1.createCell(20).setCellValue("Услуги");
+        r1.createCell(21).setCellValue("Drink_and_drive");
+        r1.createCell(22).setCellValue("Фактура");
+        r1.createCell(23).setCellValue("Допълнителна_информация");
+        //iterating r number of rows
+        for (User entity : entities) {
+            index++;
+            XSSFRow row = sheet.createRow(index);
+            row.createCell(0).setCellValue(entity.Id);
+            row.createCell(1).setCellValue(entity.Име);
+            row.createCell(2).setCellValue(entity.Пълно_име);
+            row.createCell(3).setCellValue(entity.Език);
+            row.createCell(4).setCellValue(entity.Парола);
+            row.createCell(5).setCellValue(entity.Потвърдете_паролата);
+            row.createCell(6).setCellValue(entity.Снимка);
+            row.createCell(7).setCellValue(entity.Група);
+            row.createCell(8).setCellValue(entity.Статус);
+            row.createCell(9).setCellValue(entity.Кола);
+            row.createCell(10).setCellValue(entity.Пол);
+            row.createCell(11).setCellValue(entity.Говорими_езици);
+            row.createCell(12).setCellValue(entity.Обновява_адреси);
+            row.createCell(13).setCellValue(entity.Активен_само_от_таблет_с_ID);
+            row.createCell(14).setCellValue(entity.Индивидуални_изисквания);
+            row.createCell(15).setCellValue(entity.Климатик);
+            row.createCell(16).setCellValue(entity.Пушачи);
+            row.createCell(17).setCellValue(entity.Може_да_мине_граница);
+            row.createCell(18).setCellValue(entity.Приема_животни);
+            row.createCell(19).setCellValue(entity.Wifi);
+            row.createCell(20).setCellValue(entity.Услуги);
+            row.createCell(21).setCellValue(entity.Drink_and_drive);
+            row.createCell(22).setCellValue(entity.Фактура);
+            row.createCell(23).setCellValue(entity.Допълнителна_информация);
+
+        }
+        FileOutputStream fileOut = new FileOutputStream(excelFileName);
+        //write this workbook to an Outputstream.
+        wb.write(fileOut);
+        fileOut.flush();
+        fileOut.close();
+    }
+
     public static void companiesToXlsx(String excelFileName, Collection<Company> companies) throws Exception {
 
         String sheetName = "Sheet1";//name of sheet
