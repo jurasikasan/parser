@@ -1,28 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package xlsx;
 
-import entities.AddresAndro;
-import entities.Car;
-import entities.Company;
-import entities.Zone;
+import entities.*;
 import java.io.FileOutputStream;
 import java.util.Collection;
 import org.apache.poi.common.usermodel.Hyperlink;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFCreationHelper;
-import org.apache.poi.xssf.usermodel.XSSFHyperlink;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.*;
 
-/**
- *
- * @author sy
- */
 public class XlsxWriter {
 
     public static void adressesWrite(String excelFileName, Collection<AddresAndro> entities) throws Exception {
@@ -250,7 +233,6 @@ public class XlsxWriter {
             row.createCell(4).setCellValue(company.sites.size() == 1 ? "" : "+");
         }
         FileOutputStream fileOut = new FileOutputStream(excelFileName);
-        //write this workbook to an Outputstream.
         wb.write(fileOut);
         fileOut.flush();
         fileOut.close();

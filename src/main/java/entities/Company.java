@@ -2,23 +2,19 @@ package entities;
 
 import java.util.*;
 
-/**
- *
- * @author FOX
- */
 public class Company {
 
-    public String name="ERROR";
+    public String name = "ERROR";
     public String viewLink;
     public Set<String> sites = new LinkedHashSet<>();
     public String googleSearch;
     public boolean attention;
-    
-    public String getFormattedSites(){
-        String sitesF ="";
-        
-        for(String site: sites){
-            sitesF+=site+" ";
+
+    public String getFormattedSites() {
+        String sitesF = "";
+
+        for (String site : sites) {
+            sitesF += site + " ";
         }
         return sitesF;
     }

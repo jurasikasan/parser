@@ -1,7 +1,4 @@
-
-import entities.AddresAndro;
-import entities.Car;
-import entities.Zone;
+import entities.*;
 import http.HTTPClient;
 import java.util.*;
 
@@ -12,13 +9,25 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         long start = System.nanoTime();
-        /*
-        HTTPClient http = new HTTPClient();
+        int max = 5;
+        List<AddresAndro> values = parseAdresses(max);
+        long parsed = System.nanoTime();
+        xlsx.XlsxWriter.adressesWrite("addr_" + System.nanoTime() + "_.xlsx", values);
+        long fileCreated = System.nanoTime();
+        System.out.println("processed " + max + " pages");
+        System.out.println("in seconds");
+        System.out.println("parsing: " + (parsed - start) / 1000000000d);
+        System.out.println("file creating: " + (fileCreated - parsed) / 1000000000d);
+        System.out.println("total: " + (fileCreated - start) / 1000000000d);
+//        System.out.println("57356 / "+max+" = "+((57356d/max)*((fileCreated-start)/1000000000d)));
+    }
 
+    private static List<AddresAndro> parseAdresses(int max) throws Exception {
+        HTTPClient http = new HTTPClient();
         List<AddresAndro> values = new ArrayList<>();
-        int max = 57356;
+
+        long start = System.nanoTime();
         for (int i = 1; i <= max; i++) {
-           // System.out.println("http://eco.andromix.eu/address/edit/id/" + i);
             String result = http.sendGet("http://eco.andromix.eu/address/edit/id/" + i);
             if (!result.contains("Редактиране")) {
                 System.out.println("SKIPPED");
@@ -27,65 +36,30 @@ public class Parser {
             AddresAndro a = new AddresAndro();
             a.Id = i;
 
-            String[] itemsRaw = result.split("form id=\"formaddress\"")[1].split("</form>")[0].split("<div class=\"controls\">");
+            String[] itemsRaw = result.split("form id=\"formaddress")[1].split("</form>")[0].split("<div class=\"controls\">");
             if (itemsRaw.length != 14) {
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!itemsRaw.length!=14");
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!itemsRaw.length!=14 but" + itemsRaw.length);
                 continue;
             }
-            for (String c : itemsRaw[1].split("<option value")) {
-                if (c.contains("selected=\"selected\"")) {
-                    a.Страна = c.split("selected=\"selected\">")[1].split("</optio")[0];
-                    break;
-                }
-            }
-            for (String c : itemsRaw[2].split("<option value")) {
-                if (c.contains("selected=\"selected\"")) {
-                    a.Град = c.split("selected=\"selected\">")[1].split("</optio")[0];
-                    break;
-                }
-            }
-            for (String c : itemsRaw[3].split("<option value")) {
-                if (c.contains("selected=\"selected\"")) {
-                    a.Квартал = c.split("selected=\"selected\">")[1].split("</optio")[0];
-                    break;//57351
-                }
-            }
-            a.Улица = itemsRaw[4].split("\" value=\"")[1].split("\"></div>")[0];
-            a.Номер = itemsRaw[5].split("\" value=\"")[1].split("\"></div>")[0];
-            a.Вход = itemsRaw[6].split("\" value=\"")[1].split("\"></div>")[0];
-            for (String c : itemsRaw[7].split("<option value")) {
-                if (c.contains("selected=\"selected\"")) {
-                    a.Статус = c.split("selected=\"selected\">")[1].split("</optio")[0];
-                    break;
-                }
-            }
-            a.Широчина = itemsRaw[8].split("\" value=\"")[1].split("\" ")[0];
-            a.Дължина = itemsRaw[9].split("\" value=\"")[1].split("\" ")[0];
-            a.Детайли = itemsRaw[10].split("cols=\"80\">")[1].split("</textarea>")[0];
-            a.Телефонен_номер = itemsRaw[11].split("\" value=\"")[1].split("\"></div>")[0];
-            a.Протребители = itemsRaw[12].split("cols=\"80\">")[1].split("</textarea>")[0];
-            for (String c : itemsRaw[13].split("<option value")) {
-                if (c.contains("selected=\"selected\"")) {
-                    a.Заключен = c.split("selected=\"selected\">")[1].split("</optio")[0];
-                    break;
-                }
-            }
+            storedRaw = itemsRaw;
+            rawPointer = 1;
+            a.Страна = fromNextRaw();
+            a.Град = fromNextRaw();
+            a.Квартал = fromNextRaw();
+            a.Улица = fromNextRaw();
+            a.Номер = fromNextRaw();
+            a.Вход = fromNextRaw();
+            a.Статус = fromNextRaw();
+            a.Широчина = fromNextRaw();
+            a.Дължина = fromNextRaw();
+            a.Детайли = fromNextRaw();
+            a.Телефонен_номер = fromNextRaw();
+            a.Протребители = fromNextRaw();
+            a.Заключен = fromNextRaw();
             values.add(a);
-            System.out.println("remaning " + (max - i));
-           // System.out.println("");
+            System.out.println(/*"remaning " +*/(max - i));
         }
-         */
-        int max = 259;
-        List<Car> values = parseCars(max);
-        long parsed = System.nanoTime();
-        xlsx.XlsxWriter.carsWrite("cars_" + System.nanoTime() + "_.xlsx", values);
-        long fileCreated = System.nanoTime();
-        System.out.println("processed " + max + " pages");
-        System.out.println("in seconds");
-        System.out.println("parsing: " + (parsed - start) / 1000000000d);
-        System.out.println("file creating: " + (fileCreated - parsed) / 1000000000d);
-        System.out.println("total: " + (fileCreated - start) / 1000000000d);
-//        System.out.println("57356 / "+max+" = "+((57356d/max)*((fileCreated-start)/1000000000d)));
+        return values;
     }
 
     private static List<Zone> parseZones(int max) throws Exception {
@@ -107,17 +81,19 @@ public class Parser {
                 System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!itemsRaw.length!=12 but" + itemsRaw.length);
                 continue;
             }
-            z.Име = fromRaw(itemsRaw[1]);
-            z.Опашка = fromRaw(itemsRaw[2]);
-            z.Приоритетна_опашка = fromRaw(itemsRaw[3]);
-            z.Следваща_опашка_1 = fromRaw(itemsRaw[4]);
-            z.Следваща_опашка_2 = fromRaw(itemsRaw[5]);
-            z.Позиция = fromRaw(itemsRaw[6]);
-            z.Точки = fromRaw(itemsRaw[7]);
-            z.Активна_от = fromRaw(itemsRaw[8]);
-            z.Активна_до = fromRaw(itemsRaw[9]);
-            z.IDта_на_разрешени_зони = fromRaw(itemsRaw[10]);
-            z.Статус = fromRaw(itemsRaw[11]);
+            storedRaw = itemsRaw;
+            rawPointer = 1;
+            z.Име = fromNextRaw();
+            z.Опашка = fromNextRaw();
+            z.Приоритетна_опашка = fromNextRaw();
+            z.Следваща_опашка_1 = fromNextRaw();
+            z.Следваща_опашка_2 = fromNextRaw();
+            z.Позиция = fromNextRaw();
+            z.Точки = fromNextRaw();
+            z.Активна_от = fromNextRaw();
+            z.Активна_до = fromNextRaw();
+            z.IDта_на_разрешени_зони = fromNextRaw();
+            z.Статус = fromNextRaw();
             values.add(z);
             System.out.println(/*"remaning " +*/(max - i));
         }
