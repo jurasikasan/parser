@@ -2,6 +2,8 @@
 import entities.*;
 import http.HTTPClient;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Parser {
 
@@ -10,16 +12,21 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         long start = System.nanoTime();
-        int max = 303;
-        List<User> values = parseUsers(max);
+        int pages = 73;
+        List<String> ids = getIds(pages);
+
+        List<Company> values = parseExhibitors(ids);
         long parsed = System.nanoTime();
-        xlsx.XlsxWriter.usersWrite("user_" + System.nanoTime() + "_.xlsx", values);
+//        xlsx.XlsxWriter.usersWrite("user_" + System.nanoTime() + "_.xlsx", values);
+        xlsx.XlsxWriter.companiesToXlsx("companies_" + System.nanoTime() + "_.xlsx", values);
         long fileCreated = System.nanoTime();
-        System.out.println("processed " + max + " pages");
+        System.out.println("processed " + pages + " pages");
         System.out.println("in seconds");
         System.out.println("parsing: " + (parsed - start) / 1000000000d);
         System.out.println("file creating: " + (fileCreated - parsed) / 1000000000d);
         System.out.println("total: " + (fileCreated - start) / 1000000000d);
+//        
+
 //        System.out.println("57356 / "+max+" = "+((57356d/max)*((fileCreated-start)/1000000000d)));
     }
 
@@ -210,6 +217,65 @@ public class Parser {
         return values;
     }
 
+    private static List<Company> parseExhibitors(List<String> ids) throws Exception {
+        HTTPClient http = new HTTPClient();
+        List<Company> values = new ArrayList<>();
+
+        long start = System.nanoTime();
+        int i = ids.size();
+        for (String id : ids) {
+            Company c = new Company();
+            c.id ="https://www.mobileworldcongress.com/exhibitor/" + id;
+            String result = http.sendGet("https://www.mobileworldcongress.com/exhibitor/" + id);
+            result = result.substring(result.indexOf("class=\"top-area-cont\""));
+            String container = "h1>";
+            result = result.substring(result.indexOf(container));
+            c.name = result.substring(container.length(), result.indexOf("</" + container));
+
+            container = "<p class=\"list-country\"> ";
+            if (result.contains(container)) {
+                result = result.substring(result.indexOf(container));
+                c.country = result.substring(container.length(), result.indexOf("<br></p>"));
+            }
+            container = "<br><br>Phone:";
+            if (result.contains(container)) {
+                result = result.substring(result.indexOf(container));
+                c.phone = result.substring(container.length(), result.indexOf("<br></p>"));
+            }
+
+            container = "<a class=\"emailbox\" target=\"_blank\" href=\"mailto:";
+            if (result.contains(container)) {
+                result = result.substring(result.indexOf(container));
+                c.emails.add(result.substring(container.length(), result.indexOf("\"><div class=\"email-icon\"")));
+            }
+            container = "class=\"websitebox\" target=\"_blank\" href=\"";
+            if (result.contains(container)) {
+                result = result.substring(result.indexOf(container));
+                c.sites.add(result.substring(container.length(), result.indexOf("\"><div class=\"www-icon\">")));
+            }
+            if (result.contains("<div class=\"entity-tags\">")) {
+                result = result.substring(result.indexOf("<div class=\"entity-tags\">"));
+                result = result.substring(result.indexOf("<div class=\"entity-tags\">"), result.indexOf("</div>"));
+
+                container = "><a href=\"#\">";
+                while (result.contains(container)) {
+//                    System.out.println(result);
+                    result = result.substring(result.indexOf(container));
+                    c.tags.add(result.substring(container.length(), result.indexOf("</a></label>")));
+                    result = result.substring(result.indexOf("</a></label>"));
+                }
+            }
+            System.out.println((i--) + "    ----    " + c.name);
+            System.out.println((i) + "    ----    " + c.country);
+            System.out.println((i) + "    ----    " + c.phone);
+            System.out.println((i) + "    ----    " + c.emails);
+            System.out.println((i) + "    ----    " + c.sites);
+            System.out.println((i) + "    ----    " + c.tags);
+            values.add(c);
+        }
+        return values;
+    }
+
     private static String fromNextRaw() {
         return fromRaw(storedRaw[rawPointer++]);
     }
@@ -266,8 +332,30 @@ public class Parser {
 //        }
 //        return sites;
 //    }
-
     private static String parseJSArray(String result) {
-     return result.split("var jsArray = \\[")[1].split("\\]")[0];
+        return result.split("var jsArray = \\[")[1].split("\\]")[0];
+    }
+
+    private static List<String> getIds(int max) {
+        HTTPClient http = new HTTPClient();
+        List<String> ids = new ArrayList<>();
+        for (int i = 1; i <= max; i++) {
+            try {
+                String result = http.sendGet("https://www.mobileworldcongress.com/exhibitors/page/" + i);
+                List<String> asList = new ArrayList(Arrays.asList(result.split("href=\"https://www.mobileworldcongress.com/exhibitor/")));
+                asList.remove(0);
+                asList.remove(asList.size() - 1);
+                for (String s : asList) {
+                    ids.add(s.split("/\" class=\"in-flex exhibitor")[0]);
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.out.println("erroer" + i);
+            }
+
+        }
+        return ids;
+        // "https://www.mobileworldcongress.com/exhibitors/page/73/";
     }
 }

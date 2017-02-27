@@ -264,14 +264,28 @@ public class XlsxWriter {
         XSSFSheet sheet = wb.createSheet(sheetName);
         int index = 0;
         XSSFRow r1 = sheet.createRow(index);
+        r1.createCell(0).setCellValue("Источник");
         r1.createCell(1).setCellValue("Название");
         r1.createCell(2).setCellValue("Сайты");
-        r1.createCell(3).setCellValue("Гугл_поиск");
-        r1.createCell(4).setCellValue("Перепроверить");
+        r1.createCell(3).setCellValue("Емейлы");
+        r1.createCell(4).setCellValue("Страна");
+        r1.createCell(5).setCellValue("Телефон");
+        r1.createCell(6).setCellValue("Теги");
+        r1.createCell(7).setCellValue("Гугл_поиск");
+//        r1.createCell(4).setCellValue("Перепроверить");
         //iterating r number of rows
         for (Company company : companies) {
             index++;
             XSSFRow row = sheet.createRow(index);
+            XSSFCell createCell = row.createCell(0);
+            createCell.setCellValue(company.id);
+              try {
+            XSSFHyperlink qurl_link = helper.createHyperlink(Hyperlink.LINK_URL);
+            qurl_link.setAddress(company.id);
+            createCell.setHyperlink(qurl_link);
+              } catch (Exception ex) {
+                    createCell.setCellValue(" ошибка!");
+                }
             row.createCell(1).setCellValue(company.name);
             XSSFCell sitesCell = row.createCell(2);
             if (company.sites.size() == 1) {
@@ -288,8 +302,40 @@ public class XlsxWriter {
             } else {
                 sitesCell.setCellValue(company.getFormattedSites());
             }
+            XSSFCell emailsCell = row.createCell(3);
+            if (company.emails.size() == 1) {
+                try {
+                    for (String mail : company.emails) {
+                        emailsCell.setCellValue(mail);
+                        XSSFHyperlink url_link1 = helper.createHyperlink(Hyperlink.LINK_EMAIL);
+                        url_link1.setAddress(mail);
+                        emailsCell.setHyperlink(url_link1);
+                    }
+                } catch (Exception ex) {
+                    emailsCell.setCellValue(" ошибка!");
+                }
+            } else {
+                emailsCell.setCellValue(company.getFormattedMails());
+            }
+            row.createCell(4).setCellValue(company.country);
+            row.createCell(5).setCellValue(company.phone);
+            XSSFCell tagsCell = row.createCell(6);
 
-            XSSFCell google = row.createCell(3);
+            if (company.tags.size() == 1) {
+                try {
+                    for (String tag : company.tags) {
+                        tagsCell.setCellValue(tag);
+//                        XSSFHyperlink url_link1 = helper.createHyperlink(Hyperlink.LINK_EMAIL);
+//                        url_link1.setAddress(mail);
+//                        sitesCell.setHyperlink(url_link1);
+                    }
+                } catch (Exception ex) {
+                    tagsCell.setCellValue(" ошибка!");
+                }
+            } else {
+                tagsCell.setCellValue(company.getFormattedTags());
+            }
+            XSSFCell google = row.createCell(7);
             google.setCellValue("поиск в Google");
             try {
                 XSSFHyperlink url_link = helper.createHyperlink(Hyperlink.LINK_URL);
@@ -297,9 +343,9 @@ public class XlsxWriter {
                 url_link.setTooltip("поиск в Google");
                 google.setHyperlink(url_link);
             } catch (Exception ex) {
-                sitesCell.setCellValue(" ошибка!");
+                google.setCellValue(" ошибка!");
             }
-            row.createCell(4).setCellValue(company.sites.size() == 1 ? "" : "+");
+//            row.createCell(4).setCellValue(company.sites.size() == 1 ? "" : "+");
         }
         FileOutputStream fileOut = new FileOutputStream(excelFileName);
         wb.write(fileOut);
